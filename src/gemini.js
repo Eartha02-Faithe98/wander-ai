@@ -37,6 +37,7 @@ const RECOMMENDATION_SCHEMA = {
         type: 'object',
         properties: {
           name: { type: 'string' },
+          image_keyword: { type: 'string' },
           rating: { type: 'string' },
           review_count: { type: 'string' },
           category: { type: 'string' },
@@ -44,7 +45,7 @@ const RECOMMENDATION_SCHEMA = {
           price_range: { type: 'string' },
           google_maps_query: { type: 'string' },
         },
-        required: ['name', 'rating', 'review_count', 'category', 'description', 'price_range', 'google_maps_query'],
+        required: ['name', 'image_keyword', 'rating', 'review_count', 'category', 'description', 'price_range', 'google_maps_query'],
       },
     },
     restaurants: {
@@ -53,6 +54,7 @@ const RECOMMENDATION_SCHEMA = {
         type: 'object',
         properties: {
           name: { type: 'string' },
+          image_keyword: { type: 'string' },
           rating: { type: 'string' },
           review_count: { type: 'string' },
           category: { type: 'string' },
@@ -60,7 +62,7 @@ const RECOMMENDATION_SCHEMA = {
           price_range: { type: 'string' },
           google_maps_query: { type: 'string' },
         },
-        required: ['name', 'rating', 'review_count', 'category', 'description', 'price_range', 'google_maps_query'],
+        required: ['name', 'image_keyword', 'rating', 'review_count', 'category', 'description', 'price_range', 'google_maps_query'],
       },
     },
     accommodations: {
@@ -69,6 +71,7 @@ const RECOMMENDATION_SCHEMA = {
         type: 'object',
         properties: {
           name: { type: 'string' },
+          image_keyword: { type: 'string' },
           rating: { type: 'string' },
           review_count: { type: 'string' },
           category: { type: 'string' },
@@ -76,7 +79,7 @@ const RECOMMENDATION_SCHEMA = {
           price_range: { type: 'string' },
           google_maps_query: { type: 'string' },
         },
-        required: ['name', 'rating', 'review_count', 'category', 'description', 'price_range', 'google_maps_query'],
+        required: ['name', 'image_keyword', 'rating', 'review_count', 'category', 'description', 'price_range', 'google_maps_query'],
       },
     },
     transportation: {
@@ -85,6 +88,7 @@ const RECOMMENDATION_SCHEMA = {
         type: 'object',
         properties: {
           name: { type: 'string' },
+          image_keyword: { type: 'string' },
           rating: { type: 'string' },
           review_count: { type: 'string' },
           category: { type: 'string' },
@@ -92,7 +96,7 @@ const RECOMMENDATION_SCHEMA = {
           price_range: { type: 'string' },
           google_maps_query: { type: 'string' },
         },
-        required: ['name', 'rating', 'review_count', 'category', 'description', 'price_range', 'google_maps_query'],
+        required: ['name', 'image_keyword', 'rating', 'review_count', 'category', 'description', 'price_range', 'google_maps_query'],
       },
     },
   },
@@ -129,6 +133,7 @@ export async function getRecommendations(destination, apiKey) {
 - Google 星星評分（1-5 分）和估計評論數量
 - 費用/價格範圍
 - 詳細的推薦理由
+- image_keyword（用於搜尋圖片的英文維基百科標題，例如景點用精確英文名如 "Tokyo Tower"、"Senso-ji"；餐廳用菜品類型如 "Ramen"、"Sushi"；住宿用飯店品牌或類型如 "Shinjuku hotel"；交通用工具類型如 "Shinkansen"、"Tokyo Metro"）
 
 另外，請提供：
 - 最佳旅遊季節

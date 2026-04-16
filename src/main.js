@@ -37,6 +37,83 @@ function escapeHtml(str) {
 }
 
 // ============================================
+// Wikipedia 圖片載入（免費、無需 API Key）
+// ============================================
+const imageCache = new Map();
+
+/**
+ * 透過 Wikipedia REST API 取得頁面縮圖
+ * @param {string} keyword - 英文搜尋關鍵字
+ * @returns {Promise<string|null>} 圖片 URL 或 null
+ */
+async function fetchWikiImage(keyword) {
+  if (!keyword) return null;
+  if (imageCache.has(keyword)) return imageCache.get(keyword);
+
+  try {
+    // 方法 1：直接用標題查詢 Wikipedia 摘要 API
+    const title = keyword.replace(/\s+/g, '_');
+    const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+
+    if (res.ok) {
+      const data = await res.json();
+      const imgUrl = data?.thumbnail?.source || null;
+      if (imgUrl) {
+        imageCache.set(keyword, imgUrl);
+        return imgUrl;
+      }
+    }
+
+    // 方法 2：用搜尋 API 嘗試找到相關頁面
+    const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(keyword)}&gsrlimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=400&format=json&origin=*`;
+    const searchRes = await fetch(searchUrl);
+
+    if (searchRes.ok) {
+      const searchData = await searchRes.json();
+      const pages = searchData?.query?.pages;
+      if (pages) {
+        const page = Object.values(pages)[0];
+        const imgUrl = page?.thumbnail?.source || null;
+        imageCache.set(keyword, imgUrl);
+        return imgUrl;
+      }
+    }
+
+    imageCache.set(keyword, null);
+    return null;
+  } catch (err) {
+    console.warn(`圖片載入失敗 (${keyword}):`, err.message);
+    imageCache.set(keyword, null);
+    return null;
+  }
+}
+
+/**
+ * 非同步載入所有卡片的 Wikipedia 圖片
+ */
+function loadCardImages() {
+  document.querySelectorAll('.rec-card__image[data-keyword]').forEach(async (el) => {
+    const keyword = el.dataset.keyword;
+    if (!keyword) return;
+
+    const imgUrl = await fetchWikiImage(keyword);
+    if (imgUrl) {
+      const img = new Image();
+      img.onload = () => {
+        // 圖片載入成功，淪入顯示
+        img.className = 'rec-card__real-image';
+        img.alt = el.dataset.name || '';
+        el.appendChild(img);
+        // 動畫淪入
+        requestAnimationFrame(() => img.classList.add('rec-card__real-image--loaded'));
+      };
+      img.src = imgUrl;
+    }
+  });
+}
+
+// ============================================
 // 初始化
 // ============================================
 function init() {
@@ -500,7 +577,7 @@ function renderCard(item, index) {
   return `
     <article class="rec-card" style="animation-delay: ${index * 0.05}s">
       <div class="rec-card__rank ${rankClass}">#${rank}</div>
-      <div class="rec-card__image" style="background: linear-gradient(135deg, ${color1}, ${color2});">
+      <div class="rec-card__image" style="background: linear-gradient(135deg, ${color1}, ${color2});" data-keyword="${escapeHtml(item.image_keyword || '')}" data-name="${escapeHtml(item.name)}">
         <div class="rec-card__image-pattern"></div>
         <span class="rec-card__image-emoji">${emoji}</span>
       </div>
@@ -537,6 +614,9 @@ function bindResultsEvents() {
       renderApp();
     });
   });
+
+  // 非同步載入卡片圖片
+  loadCardImages();
 }
 
 // ============================================

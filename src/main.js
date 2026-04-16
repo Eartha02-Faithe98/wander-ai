@@ -42,51 +42,78 @@ function escapeHtml(str) {
 const imageCache = new Map();
 
 /**
- * 透過 Wikipedia REST API 取得頁面縮圖
- * @param {string} keyword - 英文搜尋關鍵字
- * @returns {Promise<string|null>} 圖片 URL 或 null
+ * 透過 Wikipedia REST API 精確標題查詢
+ * @param {string} title - 英文 Wikipedia 標題
+ * @returns {Promise<string|null>}
  */
-async function fetchWikiImage(keyword) {
-  if (!keyword) return null;
-  if (imageCache.has(keyword)) return imageCache.get(keyword);
-
+async function fetchByTitle(title) {
   try {
-    // 方法 1：直接用標題查詢 Wikipedia 摘要 API
-    const title = keyword.replace(/\s+/g, '_');
-    const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
+    const slug = title.replace(/\s+/g, '_');
+    const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(slug)}`;
     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-
     if (res.ok) {
       const data = await res.json();
-      const imgUrl = data?.thumbnail?.source || null;
-      if (imgUrl) {
-        imageCache.set(keyword, imgUrl);
-        return imgUrl;
-      }
+      return data?.thumbnail?.source || null;
     }
+  } catch { /* 忽略 */ }
+  return null;
+}
 
-    // 方法 2：用搜尋 API 嘗試找到相關頁面
-    const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(keyword)}&gsrlimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=400&format=json&origin=*`;
-    const searchRes = await fetch(searchUrl);
-
-    if (searchRes.ok) {
-      const searchData = await searchRes.json();
-      const pages = searchData?.query?.pages;
+/**
+ * 透過 Wikipedia 搜尋 API 模糊查詢
+ * @param {string} keyword - 搜尋關鍵字
+ * @returns {Promise<string|null>}
+ */
+async function fetchBySearch(keyword) {
+  try {
+    const url = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(keyword)}&gsrlimit=3&prop=pageimages&piprop=thumbnail&pithumbsize=400&format=json&origin=*`;
+    const res = await fetch(url);
+    if (res.ok) {
+      const data = await res.json();
+      const pages = data?.query?.pages;
       if (pages) {
-        const page = Object.values(pages)[0];
-        const imgUrl = page?.thumbnail?.source || null;
-        imageCache.set(keyword, imgUrl);
-        return imgUrl;
+        // 找到第一個有圖片的頁面
+        for (const page of Object.values(pages)) {
+          if (page?.thumbnail?.source) return page.thumbnail.source;
+        }
       }
     }
+  } catch { /* 忽略 */ }
+  return null;
+}
 
-    imageCache.set(keyword, null);
-    return null;
-  } catch (err) {
-    console.warn(`圖片載入失敗 (${keyword}):`, err.message);
-    imageCache.set(keyword, null);
-    return null;
+/**
+ * 多層搜尋策略取得圖片
+ * @param {string} keyword - 主要關鍵字
+ * @param {string} [fallbackKeyword] - 備用關鍵字
+ * @returns {Promise<string|null>}
+ */
+async function fetchWikiImage(keyword, fallbackKeyword) {
+  if (!keyword && !fallbackKeyword) return null;
+
+  const cacheKey = keyword || fallbackKeyword;
+  if (imageCache.has(cacheKey)) return imageCache.get(cacheKey);
+
+  // 策略 1: 精確標題查詢
+  let imgUrl = keyword ? await fetchByTitle(keyword) : null;
+
+  // 策略 2: Wikipedia 搜尋（主關鍵字）
+  if (!imgUrl && keyword) {
+    imgUrl = await fetchBySearch(keyword);
   }
+
+  // 策略 3: 用備用關鍵字搜尋（例如用菜名 + food）
+  if (!imgUrl && fallbackKeyword && fallbackKeyword !== keyword) {
+    imgUrl = await fetchBySearch(fallbackKeyword);
+  }
+
+  // 策略 4: 用主關鍵字 + "food"/"cuisine" 等後綴搜尋
+  if (!imgUrl && keyword) {
+    imgUrl = await fetchBySearch(`${keyword} food`);
+  }
+
+  imageCache.set(cacheKey, imgUrl);
+  return imgUrl;
 }
 
 /**
@@ -95,17 +122,16 @@ async function fetchWikiImage(keyword) {
 function loadCardImages() {
   document.querySelectorAll('.rec-card__image[data-keyword]').forEach(async (el) => {
     const keyword = el.dataset.keyword;
-    if (!keyword) return;
+    const name = el.dataset.name || '';
+    if (!keyword && !name) return;
 
-    const imgUrl = await fetchWikiImage(keyword);
+    const imgUrl = await fetchWikiImage(keyword, name);
     if (imgUrl) {
       const img = new Image();
       img.onload = () => {
-        // 圖片載入成功，淪入顯示
         img.className = 'rec-card__real-image';
-        img.alt = el.dataset.name || '';
+        img.alt = name;
         el.appendChild(img);
-        // 動畫淪入
         requestAnimationFrame(() => img.classList.add('rec-card__real-image--loaded'));
       };
       img.src = imgUrl;

@@ -133,7 +133,11 @@ export async function getRecommendations(destination, apiKey) {
 - Google 星星評分（1-5 分）和估計評論數量
 - 費用/價格範圍
 - 詳細的推薦理由
-- image_keyword（用於搜尋圖片的英文維基百科標題，例如景點用精確英文名如 "Tokyo Tower"、"Senso-ji"；餐廳用菜品類型如 "Ramen"、"Sushi"；住宿用飯店品牌或類型如 "Shinjuku hotel"；交通用工具類型如 "Shinkansen"、"Tokyo Metro"）
+- image_keyword（用於搜尋 Wikipedia 圖片的英文關鍵字，這非常重要，請確保能在英文維基百科找到對應頁面）：
+  - 景點：使用景點在英文 Wikipedia 上的精確條目名稱，如 "Eiffel Tower"、"Sensō-ji"、"Grand Palace, Bangkok"
+  - 美食：不要用餐廳名稱（大多數餐廳沒有 Wikipedia 頁面），改用該餐廳的代表性菜餚或料理類型的英文名，如 "Babi guling"、"Pad thai"、"Ramen"、"Croissant"、"Sushi"
+  - 住宿：使用飯店集團品牌名（如 "Marriott"、"Hilton"）或該地區的地標建築名；若為民宿則用住宿類型如 "Ryokan"、"Boutique hotel"
+  - 交通：使用交通工具或系統的英文 Wikipedia 條目名，如 "Shinkansen"、"Bangkok BTS"、"Paris Métro"、"Tuk-tuk"
 
 另外，請提供：
 - 最佳旅遊季節

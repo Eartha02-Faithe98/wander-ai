@@ -749,22 +749,33 @@ img {
 .rec-card__image {
   width: 100%;
   height: 180px;
-  background: linear-gradient(135deg, var(--bg-tertiary), var(--border-color));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 3rem;
-  color: var(--text-tertiary);
   position: relative;
   overflow: hidden;
 }
 
-.rec-card__image-icon {
-  opacity: 0.4;
+/* 裝飾性圓形圖案（半透明疊加） */
+.rec-card__image-pattern {
+  position: absolute;
+  inset: 0;
+  opacity: 0.15;
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(255,255,255,0.8) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.6) 0%, transparent 40%),
+    radial-gradient(circle at 60% 80%, rgba(255,255,255,0.4) 0%, transparent 50%);
 }
-.rec-card__image-icon svg {
-  width: 48px;
-  height: 48px;
+
+/* 大型 emoji 圖示 */
+.rec-card__image-emoji {
+  font-size: 3.5rem;
+  z-index: 1;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+  transition: transform var(--transition-base);
+}
+.rec-card:hover .rec-card__image-emoji {
+  transform: scale(1.15) rotate(-5deg);
 }
 
 .rec-card__body {

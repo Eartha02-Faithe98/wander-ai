@@ -444,14 +444,46 @@ function renderCard(item, index) {
   else if (rank === 2) rankClass = 'rec-card__rank--2';
   else if (rank === 3) rankClass = 'rec-card__rank--3';
 
-  // 選擇圖示依據類別
-  const categoryIcons = {
-    attractions: icons.mapPin,
-    restaurants: icons.utensils,
-    accommodations: icons.bed,
-    transportation: icons.truck,
+  // 每個分類的 emoji 池（讓每張卡片有不同 emoji）
+  const categoryEmojis = {
+    attractions: ['🏛️', '⛩️', '🗼', '🏰', '🎡', '🌸', '🌊', '⛰️', '🎭', '🌄'],
+    restaurants: ['🍜', '🍣', '🍕', '🥘', '🍱', '☕', '🍰', '🍤', '🥗', '🍲'],
+    accommodations: ['🏨', '🏡', '🛏️', '✨', '🌃', '🏢', '🌅', '🌙', '🛋️', '🏠'],
+    transportation: ['🚅', '🚇', '🚌', '🚕', '✈️', '🚢', '🚲', '🛵', '🚶', '🗺️'],
   };
-  const categoryIcon = categoryIcons[currentCategory] || icons.mapPin;
+
+  // 每個分類的漸層色系
+  const categoryGradients = {
+    attractions: [
+      ['#667eea', '#764ba2'], ['#f093fb', '#f5576c'], ['#4facfe', '#00f2fe'],
+      ['#43e97b', '#38f9d7'], ['#fa709a', '#fee140'], ['#a18cd1', '#fbc2eb'],
+      ['#ffecd2', '#fcb69f'], ['#ff9a9e', '#fecfef'], ['#667eea', '#764ba2'],
+      ['#89f7fe', '#66a6ff'],
+    ],
+    restaurants: [
+      ['#f97316', '#ef4444'], ['#fbbf24', '#f97316'], ['#ec4899', '#f43f5e'],
+      ['#f59e0b', '#d97706'], ['#fb923c', '#e11d48'], ['#a855f7', '#ec4899'],
+      ['#facc15', '#fb923c'], ['#f472b6', '#f97316'], ['#ef4444', '#fbbf24'],
+      ['#f43f5e', '#fb923c'],
+    ],
+    accommodations: [
+      ['#3b82f6', '#1d4ed8'], ['#6366f1', '#8b5cf6'], ['#0ea5e9', '#06b6d4'],
+      ['#2563eb', '#7c3aed'], ['#6d28d9', '#4f46e5'], ['#0284c7', '#0369a1'],
+      ['#8b5cf6', '#6366f1'], ['#1e40af', '#3b82f6'], ['#4f46e5', '#7c3aed'],
+      ['#0891b2', '#0e7490'],
+    ],
+    transportation: [
+      ['#10b981', '#059669'], ['#14b8a6', '#0d9488'], ['#06b6d4', '#0891b2'],
+      ['#22c55e', '#16a34a'], ['#34d399', '#10b981'], ['#2dd4bf', '#14b8a6'],
+      ['#059669', '#047857'], ['#0d9488', '#0f766e'], ['#10b981', '#06b6d4'],
+      ['#16a34a', '#15803d'],
+    ],
+  };
+
+  const emojis = categoryEmojis[currentCategory] || categoryEmojis.attractions;
+  const gradients = categoryGradients[currentCategory] || categoryGradients.attractions;
+  const emoji = emojis[index % emojis.length];
+  const [color1, color2] = gradients[index % gradients.length];
 
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.google_maps_query || item.name)}`;
 
@@ -461,13 +493,16 @@ function renderCard(item, index) {
   const reviewText =
     reviewCountNum >= 1000
       ? `${(reviewCountNum / 1000).toFixed(1)}K 則評論`
-      : `${item.review_count} 則評論`;
+      : reviewCountNum > 0
+        ? `${reviewCountNum} 則評論`
+        : item.review_count ? `${item.review_count} 則評論` : '- 則評論';
 
   return `
     <article class="rec-card" style="animation-delay: ${index * 0.05}s">
       <div class="rec-card__rank ${rankClass}">#${rank}</div>
-      <div class="rec-card__image">
-        <span class="rec-card__image-icon">${categoryIcon}</span>
+      <div class="rec-card__image" style="background: linear-gradient(135deg, ${color1}, ${color2});">
+        <div class="rec-card__image-pattern"></div>
+        <span class="rec-card__image-emoji">${emoji}</span>
       </div>
       <div class="rec-card__body">
         <h3 class="rec-card__name">

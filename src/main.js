@@ -26,6 +26,17 @@ let currentData = null; // 推薦資料
 let isLoading = false;
 
 // ============================================
+// 安全工具：HTML 跳脫（防止 XSS 注入）
+// ============================================
+function escapeHtml(str) {
+  if (str == null) return '';
+  const s = String(str);
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+// ============================================
 // 初始化
 // ============================================
 function init() {
@@ -348,12 +359,12 @@ function renderResultsPage() {
       <!-- 目的地標題 -->
       <header class="results-header">
         <h1 class="results-header__destination">
-          探索 <span class="gradient-text">${data.destination_name}</span>
+          探索 <span class="gradient-text">${escapeHtml(data.destination_name)}</span>
         </h1>
         <div class="results-header__meta">
-          <span class="results-header__meta-item">${icons.mapPin} ${data.destination_country}</span>
-          <span class="results-header__meta-item">${icons.calendar} 建議 ${data.suggested_days}</span>
-          <span class="results-header__meta-item">${icons.clock} 最佳季節：${data.best_season}</span>
+          <span class="results-header__meta-item">${icons.mapPin} ${escapeHtml(data.destination_country)}</span>
+          <span class="results-header__meta-item">${icons.calendar} 建議 ${escapeHtml(data.suggested_days)}</span>
+          <span class="results-header__meta-item">${icons.clock} 最佳季節：${escapeHtml(data.best_season)}</span>
         </div>
       </header>
 
@@ -364,7 +375,7 @@ function renderResultsPage() {
           <div class="info-card__icon info-card__icon--tips">${icons.info}</div>
           <h3 class="info-card__title">旅遊小撇步</h3>
           <ul class="info-card__list">
-            ${(data.travel_tips || []).map((tip) => `<li>${tip}</li>`).join('')}
+            ${(data.travel_tips || []).map((tip) => `<li>${escapeHtml(tip)}</li>`).join('')}
           </ul>
         </div>
 
@@ -374,14 +385,14 @@ function renderResultsPage() {
           <h3 class="info-card__title">預估旅費</h3>
           <div class="info-card__content">
             <p style="font-size: 1.2rem; font-weight: 800; color: var(--primary-500); margin-bottom: 8px;">
-              ${data.budget_range_twd || '資料載入中'}
+              ${escapeHtml(data.budget_range_twd) || '資料載入中'}
             </p>
-            <p style="margin-bottom: 12px; font-size: 0.82rem;">每日約 ${data.daily_budget_twd || '-'}</p>
+            <p style="margin-bottom: 12px; font-size: 0.82rem;">每日約 ${escapeHtml(data.daily_budget_twd) || '-'}</p>
             <ul class="info-card__list">
-              <li>住宿：${data.budget_accommodation || '-'} / 晚</li>
-              <li>餐飲：${data.budget_meals || '-'} / 日</li>
-              <li>交通：${data.budget_transportation || '-'} / 日</li>
-              <li>活動：${data.budget_activities || '-'} / 日</li>
+              <li>住宿：${escapeHtml(data.budget_accommodation) || '-'} / 晚</li>
+              <li>餐飲：${escapeHtml(data.budget_meals) || '-'} / 日</li>
+              <li>交通：${escapeHtml(data.budget_transportation) || '-'} / 日</li>
+              <li>活動：${escapeHtml(data.budget_activities) || '-'} / 日</li>
             </ul>
           </div>
         </div>
@@ -391,9 +402,9 @@ function renderResultsPage() {
           <div class="info-card__icon info-card__icon--season">${icons.calendar}</div>
           <h3 class="info-card__title">旅遊季節建議</h3>
           <div class="info-card__content">
-            <p style="font-weight: 600; margin-bottom: 8px;">${data.best_season}</p>
-            <p>建議停留天數：<strong>${data.suggested_days}</strong></p>
-            <p style="margin-top: 8px;">當地貨幣：${data.currency || '-'}</p>
+            <p style="font-weight: 600; margin-bottom: 8px;">${escapeHtml(data.best_season)}</p>
+            <p>建議停留天數：<strong>${escapeHtml(data.suggested_days)}</strong></p>
+            <p style="margin-top: 8px;">當地貨幣：${escapeHtml(data.currency) || '-'}</p>
           </div>
         </div>
       </div>
@@ -460,19 +471,19 @@ function renderCard(item, index) {
       </div>
       <div class="rec-card__body">
         <h3 class="rec-card__name">
-          ${item.name}
-          <span class="rec-card__category-tag">${item.category}</span>
+          ${escapeHtml(item.name)}
+          <span class="rec-card__category-tag">${escapeHtml(item.category)}</span>
         </h3>
         <div class="rec-card__rating">
           <div class="rec-card__stars">${renderStars(ratingNum)}</div>
-          <span class="rec-card__rating-number">${item.rating}</span>
-          <span class="rec-card__reviews">(${reviewText})</span>
+          <span class="rec-card__rating-number">${escapeHtml(item.rating)}</span>
+          <span class="rec-card__reviews">(${escapeHtml(reviewText)})</span>
         </div>
-        <p class="rec-card__description">${item.description}</p>
+        <p class="rec-card__description">${escapeHtml(item.description)}</p>
         <div class="rec-card__footer">
-          <span class="rec-card__price">${icons.wallet} ${item.price_range}</span>
+          <span class="rec-card__price">${icons.wallet} ${escapeHtml(item.price_range)}</span>
           <a href="${googleMapsUrl}" target="_blank" rel="noopener noreferrer"
-             class="rec-card__gmaps" aria-label="在 Google Maps 查看 ${item.name}">
+             class="rec-card__gmaps" aria-label="在 Google Maps 查看 ${escapeHtml(item.name)}">
             ${icons.externalLink} Maps
           </a>
         </div>
@@ -504,7 +515,7 @@ function renderError(message) {
     <div class="error-state">
       <div class="error-state__icon">${icons.warning}</div>
       <h2 class="error-state__title">發生錯誤</h2>
-      <p class="error-state__message">${message}</p>
+      <p class="error-state__message">${escapeHtml(message)}</p>
       <button class="error-state__btn" id="btn-go-home">返回首頁</button>
     </div>
   `;

@@ -180,8 +180,8 @@ export async function getRecommendations(destination, apiKey) {
         }
 
         // 其他錯誤（如模型不存在），嘗試下一個模型
-        lastError = new Error(`模型 ${model} 不可用：${errorMessage}`);
-        console.warn(`模型 ${model} 失敗，嘗試下一個...`, errorMessage);
+        console.warn(`模型 ${model} 失敗：`, errorMessage);
+        lastError = new Error('AI 服務暫時無法使用，正在嘗試備用模型...');
         continue;
       }
 
